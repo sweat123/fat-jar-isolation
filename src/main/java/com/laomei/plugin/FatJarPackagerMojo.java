@@ -40,6 +40,9 @@ public class FatJarPackagerMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.artifactId}")
     private String artifactName;
 
+    @Parameter(defaultValue = "${project.version}")
+    private String version;
+
     private Log logger = getLog();
 
     @Override
@@ -61,7 +64,7 @@ public class FatJarPackagerMojo extends AbstractMojo {
             throw new MojoExecutionException(e.getMessage());
         }
 
-        String fileName = artifactName + "-fat.jar";
+        String fileName = artifactName + "-" + version + "-fat.jar";
         File destination = new File(outputDirectory, fileName);
         if (destination.exists()) {
             destination.delete();
@@ -70,9 +73,10 @@ public class FatJarPackagerMojo extends AbstractMojo {
 
         addLibs(archiver);
 
-        File manifestTempFile = new File(outputDirectory, "MANIFEST.MF");
+        File manifestTempFile = null;
 
         try {
+            manifestTempFile = new File(outputDirectory, "MANIFEST.MF");
             addManifest(archiver, manifestTempFile);
 
             try {
@@ -81,7 +85,9 @@ public class FatJarPackagerMojo extends AbstractMojo {
                 throw new MojoExecutionException(e.getMessage());
             }
         } finally {
-            manifestTempFile.delete();
+            if (manifestTempFile != null) {
+                manifestTempFile.delete();
+            }
         }
     }
 

@@ -1,6 +1,8 @@
 # Fat Jar Plugin
 
-A maven plugin for creating fat jar;
+A maven plugin for creating fat jar; 
+
+All of the libraries of the current project will be added into the fat jar including current project jar file;
 
 ## usage
 
@@ -22,6 +24,8 @@ A maven plugin for creating fat jar;
 
 ## result
 
+A new jar file will be created which the name will be append `'-fat'` at the end of the name;
+
 The structure of fat jar
 
 ```text
@@ -39,3 +43,6 @@ The structure of fat jar
 └── META-INF
     └── MANIFEST.MF
 ```
+
+- `demo-1.0-SNAPSHOT.jar` jar file of the current project
+- `other jar files` declared in the maven pom.xml
