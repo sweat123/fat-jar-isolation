@@ -28,6 +28,9 @@ import java.util.jar.Manifest;
 @Mojo(name = "repackage", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class FatJarPackagerMojo extends AbstractMojo {
 
+    private static final String FAT_JAR_TOOL = "Fat-Jar-Build-Tool";
+    private static final String FAT_JAR_TOOL_VALUE = "laomei-Fat-Jar-Plugin";
+
     @Component
     private MavenProject project;
 
@@ -94,6 +97,7 @@ public class FatJarPackagerMojo extends AbstractMojo {
     private void addManifest(Archiver archiver, File manifestFile) throws MojoExecutionException {
         Manifest manifest = new Manifest();
         manifest.getMainAttributes().putValue("Manifest-Version", "1.0");
+        manifest.getMainAttributes().putValue(FAT_JAR_TOOL, FAT_JAR_TOOL_VALUE);
         try (PrintStream printStream = new PrintStream(manifestFile, "UTF-8")) {
             manifest.write(printStream);
         } catch (IOException e) {
