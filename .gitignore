@@ -1,4 +1,4 @@
-# Created by .ignore support plugin (hsz.mobi)
+# Created by .ignore support com.laomei.fatjar.plugin (hsz.mobi)
 ### Java template
 # Compiled class file
 *.class
@@ -27,3 +27,5 @@ hs_err_pid*
 .idea
 *.iml
 target
+*/target
+

@@ -1,4 +1,4 @@
-package com.laomei.plugin;
+package com.laomei.fatjar.plugin;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;

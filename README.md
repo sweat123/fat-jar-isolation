@@ -8,7 +8,7 @@ All of the libraries of the current project will be added into the fat jar inclu
 
 ```xml
 <plugin>
-    <groupId>com.laomei.test</groupId>
+    <groupId>com.laomei.github</groupId>
     <artifactId>fat-jar-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <executions>
