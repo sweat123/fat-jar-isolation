@@ -10,8 +10,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>fat-jar-plugin</module>
         <module>fat-jar-classloader</module>
+        <module>fat-jar-plugin</module>
+        <module>fat-jar-test-class</module>
     </modules>
 
     <build>
@@ -19,6 +20,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>

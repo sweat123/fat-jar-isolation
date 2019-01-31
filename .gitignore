@@ -1,6 +1,6 @@
 # Created by .ignore support com.laomei.fatjar.plugin (hsz.mobi)
 ### Java template
-# Compiled class file
+# Compiled clazz file
 *.class
 
 # Log file
@@ -13,7 +13,6 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
