@@ -1,29 +1,46 @@
-/*
- * FatJarDelegateClassLoaderTest.java
- * Copyright 2019 Qunhe Tech, all rights reserved.
- * Qunhe PROPRIETARY/CONFIDENTIAL, any form of usage is subject to approval.
- */
-
 package com.laomei.fatjar.classloader.test;
 
-import com.laomei.fatjar.base.TestClass;
-import com.laomei.fatjar.clazz.HelloWorld;
+import com.laomei.fatjar.classloader.FatJarDelegateClassLoader;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.BlockJUnit4ClassRunner;
+
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Collections;
 
 /**
- * @author luobo.hwz on 2019/1/31 15:56
+ * @author laomei on 2019/1/31 15:56
  */
-@RunWith(FatJarRunner.class)
+@RunWith(BlockJUnit4ClassRunner.class)
 public class FatJarDelegateClassLoaderTest {
 
+    private ClassLoader classLoader;
+
+    @Before
+    public void init() {
+        classLoader = initClassLoader();
+    }
+
     @Test
-    public void testFatJarDelegateClassLoader() {
-        HelloWorld helloWorld = new HelloWorld(new TestClass());
-        ClassLoader loader = helloWorld.getClass().getClassLoader();
-        System.out.println(loader);
-        System.out.println(Thread.currentThread().getContextClassLoader());
-        String str = helloWorld.hello();
-        System.out.println(str);
+    public void testFatJarDelegateClassLoader() throws ClassNotFoundException {
+        Class<?> klass = Class.forName("com.laomei.fatjar.base.TestClass", true, classLoader);
+        System.out.println(klass);
+    }
+
+    private static URLClassLoader initClassLoader() {
+        ClassLoader lastClassLoader = Thread.currentThread().getContextClassLoader();
+        URLClassLoader urlClassLoader = (URLClassLoader) lastClassLoader;
+        return createFatJarClassLoader(urlClassLoader);
+    }
+
+    private static FatJarDelegateClassLoader createFatJarClassLoader(ClassLoader classLoader) {
+        URL url = classLoader.getResource("test-fat-jar-class-1.0-SNAPSHOT-fat.jar");
+        return new FatJarDelegateClassLoader(
+                new URL[] { url },
+                null,
+                Collections.singleton("com.laomei.fatjar.base")
+        );
     }
 }

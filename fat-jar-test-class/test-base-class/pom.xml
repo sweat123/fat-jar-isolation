@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ pom.xml
-  ~ Copyright 2019 Qunhe Tech, all rights reserved.
-  ~ Qunhe PROPRIETARY/CONFIDENTIAL, any form of usage is subject to approval.
-  -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -18,5 +12,16 @@
 
     <artifactId>test-base-class</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>org.hellojavaer.fatjar</groupId>
+            <artifactId>fatjar-core</artifactId>
+            <version>1.0.0.M1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>demo</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>
