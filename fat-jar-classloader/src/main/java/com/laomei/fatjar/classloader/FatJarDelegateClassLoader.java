@@ -1,5 +1,7 @@
 package com.laomei.fatjar.classloader;
 
+import com.laomei.fatjar.classloader.boot.archive.Archive;
+import com.laomei.fatjar.classloader.boot.archive.JarFileArchive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
@@ -75,6 +76,7 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
         if (!containsResources(name)) {
             return null;
         }
+        System.out.println(name + ", " + this);
         for (FatJarClassLoader fatJarClassLoader : fatJarClassLoaders) {
             try {
                 clazz = fatJarClassLoader.loadClass(name);
@@ -127,21 +129,13 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
     }
 
     private void initFatJarClassLoader(File file) throws IOException {
-        final URL rootUrl = file.toURI().toURL();
-        final JarFile jarFile = new JarFile(file);
-        final List<URL> nestedJars = new ArrayList<>(16);
-        final Enumeration<JarEntry> jarEntries = jarFile.entries();
-        while (jarEntries.hasMoreElements()) {
-            JarEntry jarEntry = jarEntries.nextElement();
-            if (!jarEntry.isDirectory() && jarEntry.getName().endsWith(".jar")) {
-                // nested jar
-                String nestedJarPath = rootUrl.toString() + "!/" + jarEntry.getName();
-                URL nestedJarUrl = new URL(nestedJarPath);
-                nestedJars.add(nestedJarUrl);
-            }
+        JarFileArchive jarFileArchive = new JarFileArchive(file);
+        List<Archive> archives = jarFileArchive.getNestedArchives(this::isNestedArchive);
+        List<URL> urlList = new ArrayList<>();
+        for (Archive archive : archives) {
+            urlList.add(archive.getUrl());
         }
-        FatJarClassLoader fatJarClassLoader =
-                new FatJarClassLoader(nestedJars.toArray(new URL[0]), jarFile, extClassLoader);
+        FatJarClassLoader fatJarClassLoader = new FatJarClassLoader(urlList.toArray(new URL[0]));
         fatJarClassLoaders.add(fatJarClassLoader);
     }
 
@@ -181,5 +175,9 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
                 jarFiles.add(file0);
             }
         }
+    }
+
+    private boolean isNestedArchive(Archive.Entry entry) {
+        return entry.getName().endsWith(".jar");
     }
 }
