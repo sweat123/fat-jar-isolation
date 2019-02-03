@@ -1,5 +1,7 @@
 package com.laomei.fatjar.classloader;
 
+import com.laomei.fatjar.classloader.boot.jar.Handler;
+
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -7,6 +9,7 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
+import java.util.Enumeration;
 import java.util.jar.JarFile;
 
 /**
@@ -19,27 +22,49 @@ public class FatJarClassLoader extends URLClassLoader {
     }
 
     @Override
-    public Class<?> loadClass(final String name) throws ClassNotFoundException {
-        return loadClass(name, false);
+    public URL findResource(String name) {
+        Handler.setUseFastConnectionExceptions(true);
+        try {
+            return super.findResource(name);
+        }
+        finally {
+            Handler.setUseFastConnectionExceptions(false);
+        }
+    }
+
+    @Override
+    public Enumeration<URL> findResources(String name) throws IOException {
+        Handler.setUseFastConnectionExceptions(true);
+        try {
+            return super.findResources(name);
+        }
+        finally {
+            Handler.setUseFastConnectionExceptions(false);
+        }
     }
 
     @Override
     protected Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
-        System.out.println(name + ", " + this);
+        Handler.setUseFastConnectionExceptions(true);
         try {
-            definePackageIfNecessary(name);
-        }
-        catch (IllegalArgumentException ex) {
-            // Tolerate race condition due to being parallel capable
-            if (getPackage(name) == null) {
-                // This should never happen as the IllegalArgumentException indicates
-                // that the package has already been defined and, therefore,
-                // getPackage(name) should not return null.
-                throw new AssertionError("Package " + name + " has already been "
-                        + "defined but it could not be found");
+            try {
+                definePackageIfNecessary(name);
             }
+            catch (IllegalArgumentException ex) {
+                // Tolerate race condition due to being parallel capable
+                if (getPackage(name) == null) {
+                    // This should never happen as the IllegalArgumentException indicates
+                    // that the package has already been defined and, therefore,
+                    // getPackage(name) should not return null.
+                    throw new AssertionError("Package " + name + " has already been "
+                            + "defined but it could not be found");
+                }
+            }
+            return super.loadClass(name, resolve);
         }
-        return super.loadClass(name, resolve);
+        finally {
+            Handler.setUseFastConnectionExceptions(false);
+        }
     }
 
     /**
@@ -103,6 +128,31 @@ public class FatJarClassLoader extends URLClassLoader {
         }
         catch (java.security.PrivilegedActionException ex) {
             // Ignore
+        }
+    }
+
+    /**
+     * Clear URL caches.
+     */
+    public void clearCache() {
+        for (URL url : getURLs()) {
+            try {
+                URLConnection connection = url.openConnection();
+                if (connection instanceof JarURLConnection) {
+                    clearCache(connection);
+                }
+            }
+            catch (IOException ex) {
+                // Ignore
+            }
+        }
+
+    }
+
+    private void clearCache(URLConnection connection) throws IOException {
+        Object jarFile = ((JarURLConnection) connection).getJarFile();
+        if (jarFile instanceof com.laomei.fatjar.classloader.boot.jar.JarFile) {
+            ((com.laomei.fatjar.classloader.boot.jar.JarFile) jarFile).clearCache();
         }
     }
 }

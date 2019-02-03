@@ -25,7 +25,7 @@ public class FatJarDelegateClassLoaderTest {
 
     @Test
     public void testFatJarDelegateClassLoader() throws ClassNotFoundException {
-        Class<?> klass = Class.forName("com.laomei.fatjar.clazz.HelloWorld", false, classLoader);
+        Class<?> klass = Class.forName("com.laomei.fatjar.base.TestClass", false, classLoader);
         System.out.println(klass);
     }
 

@@ -76,7 +76,6 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
         if (!containsResources(name)) {
             return null;
         }
-        System.out.println(name + ", " + this);
         for (FatJarClassLoader fatJarClassLoader : fatJarClassLoaders) {
             try {
                 clazz = fatJarClassLoader.loadClass(name);
