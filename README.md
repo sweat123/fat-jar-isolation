@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/sweat123/fat-jar-isolation.svg?branch=master)](https://travis-ci.org/sweat123/fat-jar-isolation)
+
 # Fat Jar Plugin
 
 A maven plugin for creating fat jar; 
