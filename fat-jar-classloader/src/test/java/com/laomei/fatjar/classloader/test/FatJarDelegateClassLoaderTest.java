@@ -1,6 +1,8 @@
 package com.laomei.fatjar.classloader.test;
 
+import com.laomei.fatjar.base.TestClass;
 import com.laomei.fatjar.classloader.FatJarDelegateClassLoader;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +18,7 @@ import java.util.Collections;
 @RunWith(BlockJUnit4ClassRunner.class)
 public class FatJarDelegateClassLoaderTest {
 
-    private ClassLoader classLoader;
+    private URLClassLoader classLoader;
 
     @Before
     public void init() {
@@ -25,17 +27,14 @@ public class FatJarDelegateClassLoaderTest {
 
     @Test
     public void testFatJarDelegateClassLoader() throws ClassNotFoundException {
-        Class<?> klass = Class.forName("com.laomei.fatjar.base.TestClass", false, classLoader);
-        System.out.println(klass);
+        Class<?> klass = Class.forName("com.laomei.fatjar.base.TestClass", true, classLoader);
+        Assert.assertEquals(klass.getCanonicalName(), TestClass.class.getCanonicalName());
+        Assert.assertNotEquals(klass, TestClass.class);
     }
 
     private static URLClassLoader initClassLoader() {
         ClassLoader lastClassLoader = Thread.currentThread().getContextClassLoader();
-        return createFatJarClassLoader(lastClassLoader);
-    }
-
-    private static FatJarDelegateClassLoader createFatJarClassLoader(ClassLoader classLoader) {
-        URL url = classLoader.getResource("test-fat-jar-class-1.0-SNAPSHOT-fat.jar");
+        URL url = lastClassLoader.getResource("test-fat-jar-class-1.0-SNAPSHOT-fat.jar");
         return new FatJarDelegateClassLoader(
                 new URL[] { url },
                 null,

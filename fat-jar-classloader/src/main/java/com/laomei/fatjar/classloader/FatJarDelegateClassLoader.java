@@ -2,8 +2,6 @@ package com.laomei.fatjar.classloader;
 
 import com.laomei.fatjar.classloader.boot.archive.Archive;
 import com.laomei.fatjar.classloader.boot.archive.JarFileArchive;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +21,6 @@ import java.util.jar.Manifest;
  */
 public class FatJarDelegateClassLoader extends URLClassLoader {
 
-    private static final Logger logger              = LoggerFactory.getLogger(FatJarDelegateClassLoader.class);
-
     private static final String FAT_JAR_TOOL        = "Fat-Jar-Build-Tool";
 
     private static final String FAT_JAR_TOOL_VALUE  = "laomei-Fat-Jar-Plugin";
@@ -33,12 +29,10 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
 
     private final Collection<String>      resourcePrefixes;
 
-    private ClassLoader extClassLoader;
-
     public FatJarDelegateClassLoader(final URL[] urls, final ClassLoader parent, Collection<String> resourcePrefixes) {
         super(urls, parent);
         this.resourcePrefixes = resourcePrefixes;
-        this.fatJarClassLoaders = new ArrayList<>(4);
+        this.fatJarClassLoaders = new ArrayList<>(1 << 2);
         init();
     }
 
@@ -80,7 +74,7 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
             try {
                 clazz = fatJarClassLoader.loadClass(name);
                 if (clazz != null) {
-                    break;
+                    return clazz;
                 }
             } catch (ClassNotFoundException ignore) {
             }
@@ -98,11 +92,6 @@ public class FatJarDelegateClassLoader extends URLClassLoader {
     }
 
     private void init() {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        while (classLoader.getParent() != null) {
-            classLoader = classLoader.getParent();
-        }
-        extClassLoader = classLoader;
         URL[] urls = getURLs();
         for (URL url : urls) {
             initWithUrl(url);

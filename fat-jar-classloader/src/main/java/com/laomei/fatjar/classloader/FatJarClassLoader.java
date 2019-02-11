@@ -13,6 +13,9 @@ import java.util.Enumeration;
 import java.util.jar.JarFile;
 
 /**
+ * @author Phillip Webb
+ * @author Dave Syer
+ * @author Andy Wilkinson
  * @author laomei on 2019/1/9 17:32
  */
 public class FatJarClassLoader extends URLClassLoader {
