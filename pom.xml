@@ -13,7 +13,18 @@
         <module>fat-jar-classloader</module>
         <module>fat-jar-plugin</module>
         <module>fat-jar-test-class</module>
+        <module>fat-jar-common</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.laomei.github</groupId>
+                <artifactId>fat-jar-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>

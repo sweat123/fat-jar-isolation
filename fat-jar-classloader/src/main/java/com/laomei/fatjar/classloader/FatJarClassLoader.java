@@ -1,6 +1,6 @@
 package com.laomei.fatjar.classloader;
 
-import com.laomei.fatjar.classloader.boot.jar.Handler;
+import com.laomei.fatjar.common.boot.jar.Handler;
 
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -13,6 +13,10 @@ import java.util.Enumeration;
 import java.util.jar.JarFile;
 
 /**
+ * 拿 Spring Boot ClassLoader 抄的。一个中间件模块对应一个 Fat Jar ClassLoader。
+ * Spring Boot ClassLoader 会解析 fat jar 路径。如果是 fat jar，我们必须定义 package，保证能够找到对应的类。
+ * @see #definePackageIfNecessary(String)
+ *
  * @author Phillip Webb
  * @author Dave Syer
  * @author Andy Wilkinson
@@ -20,8 +24,8 @@ import java.util.jar.JarFile;
  */
 public class FatJarClassLoader extends URLClassLoader {
 
-    public FatJarClassLoader(final URL[] urls) {
-        super(urls, null);
+    public FatJarClassLoader(final URL[] urls, ClassLoader parent) {
+        super(urls, parent);
     }
 
     @Override
@@ -154,8 +158,8 @@ public class FatJarClassLoader extends URLClassLoader {
 
     private void clearCache(URLConnection connection) throws IOException {
         Object jarFile = ((JarURLConnection) connection).getJarFile();
-        if (jarFile instanceof com.laomei.fatjar.classloader.boot.jar.JarFile) {
-            ((com.laomei.fatjar.classloader.boot.jar.JarFile) jarFile).clearCache();
+        if (jarFile instanceof com.laomei.fatjar.common.boot.jar.JarFile) {
+            ((com.laomei.fatjar.common.boot.jar.JarFile) jarFile).clearCache();
         }
     }
 }

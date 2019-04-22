@@ -1,5 +1,7 @@
 package com.laomei.fatjar.plugin;
 
+import com.laomei.fatjar.common.boot.tool.ArtifactsLibraries;
+import com.laomei.fatjar.common.boot.tool.Libraries;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -11,16 +13,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.Archiver;
-import org.codehaus.plexus.archiver.manager.ArchiverManager;
-import org.codehaus.plexus.archiver.manager.NoSuchArchiverException;
-import org.codehaus.plexus.archiver.zip.AbstractZipArchiver;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.util.Collections;
 import java.util.Set;
-import java.util.jar.Manifest;
 
 /**
  * @author laomei on 2019/1/7 14:24
@@ -28,25 +25,19 @@ import java.util.jar.Manifest;
 @Mojo(name = "repackage", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class FatJarPackagerMojo extends AbstractMojo {
 
-    private static final String FAT_JAR_TOOL = "Fat-Jar-Build-Tool";
-    private static final String FAT_JAR_TOOL_VALUE = "laomei-Fat-Jar-Plugin";
-
     @Component
-    private MavenProject project;
-
-    @Component
-    protected ArchiverManager archiverManager;
+    private MavenProject      project;
 
     @Parameter(defaultValue = "${project.build.directory}", required = true)
-    private File outputDirectory;
+    private File              outputDirectory;
 
-    @Parameter(defaultValue = "${project.artifactId}")
-    private String artifactName;
+    @Parameter
+    private String            classifier;
 
-    @Parameter(defaultValue = "${project.version}")
-    private String version;
+    @Parameter(defaultValue = "${project.build.finalName}", required = true)
+    private String            finalName;
 
-    private Log logger = getLog();
+    private Log               logger = getLog();
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -56,78 +47,29 @@ public class FatJarPackagerMojo extends AbstractMojo {
     }
 
     private void repackage() throws MojoExecutionException, MojoFailureException {
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs();
-        }
 
-        Archiver archiver;
-        try {
-            archiver = getArchiver();
-        } catch (NoSuchArchiverException e) {
-            throw new MojoExecutionException(e.getMessage());
-        }
-
-        String fileName = artifactName + "-" + version + "-fat.jar";
-        File destination = new File(outputDirectory, fileName);
-        if (destination.exists()) {
-            destination.delete();
-        }
-        archiver.setDestFile(destination);
-
-        addLibs(archiver);
-
-        File manifestTempFile = null;
-
-        try {
-            manifestTempFile = new File(outputDirectory, "MANIFEST.MF");
-            addManifest(archiver, manifestTempFile);
-
-            try {
-                createArchive(archiver, destination);
-            } catch (IOException e) {
-                throw new MojoExecutionException(e.getMessage());
-            }
-        } finally {
-            if (manifestTempFile != null) {
-                manifestTempFile.delete();
-            }
-        }
-    }
-
-    private void addManifest(Archiver archiver, File manifestFile) throws MojoExecutionException {
-        Manifest manifest = new Manifest();
-        manifest.getMainAttributes().putValue("Manifest-Version", "1.0");
-        manifest.getMainAttributes().putValue(FAT_JAR_TOOL, FAT_JAR_TOOL_VALUE);
-        try (PrintStream printStream = new PrintStream(manifestFile, "UTF-8")) {
-            manifest.write(printStream);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage());
-        }
-        archiver.addFile(manifestFile, "META-INF/MANIFEST.MF");
-    }
-
-    private void addLibs(Archiver archiver) {
-        Set<Artifact> artifacts = project.getArtifacts();
-        for (Artifact artifact : artifacts) {
-            String dest = artifact.getFile().getName();
-            dest = "lib/" + dest;
-            archiver.addFile(artifact.getFile(), dest);
-        }
         File sourceFile = project.getArtifact().getFile();
-        String dest = sourceFile.getAbsoluteFile().getName();
-        archiver.addFile(sourceFile, "lib/" + dest);
+        Repackager repackager = new Repackager(sourceFile);
+        File target = getTargetFile();
+        Set<Artifact> artifacts = project.getArtifacts();
+        Libraries libraries = new ArtifactsLibraries(artifacts, Collections.emptyList(), getLog());
+        try {
+            repackager.repackage(target, libraries);
+        }
+        catch (IOException ex) {
+            throw new MojoExecutionException(ex.getMessage(), ex);
+        }
     }
 
-    private void createArchive(Archiver archiver, File destination) throws IOException {
-        archiver.createArchive();
-        Artifact artifact = project.getArtifact();
-        artifact.setFile(destination);
-        project.setArtifact(artifact);
-    }
-
-    protected Archiver getArchiver() throws NoSuchArchiverException {
-        Archiver archiver = archiverManager.getArchiver("zip");
-        ((AbstractZipArchiver) archiver).setCompress(false);
-        return archiver;
+    private File getTargetFile() {
+        String classifier = (this.classifier != null ? this.classifier.trim() : "");
+        if (classifier.length() > 0 && !classifier.startsWith("-")) {
+            classifier = "-" + classifier;
+        }
+        if (!this.outputDirectory.exists()) {
+            this.outputDirectory.mkdirs();
+        }
+        String name = this.finalName + classifier + "-fat." + this.project.getArtifact().getArtifactHandler().getExtension();
+        return new File(this.outputDirectory, name);
     }
 }
